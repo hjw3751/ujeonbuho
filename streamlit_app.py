@@ -20,7 +20,6 @@ CODON_TABLE = {
     'UGC': 'Cys', 'UGU': 'Cys', 'UGA': 'Stop', 'UGG': 'Trp',
 }
 
-# 2. 아미노산 이름 매핑 딕셔너리 (사용자 이해를 돕기 위함)
 AMINO_ACID_NAMES = {
     'Ile': '이소류신 (Isoleucine)', 'Met(Start)': '메싸이오닌 (Methionine) / 개시',
     'Thr': '트레오닌 (Threonine)', 'Asn': '아스파라긴 (Asparagine)',
@@ -38,11 +37,42 @@ AMINO_ACID_NAMES = {
 # 웹 페이지 기본 설정
 st.set_page_config(page_title="유전부호 해독기", page_icon="🧬", layout="wide")
 
-st.title("🧬 유전부호 해독 시각화 프로그램")
-st.markdown("입력된 DNA 서열이 mRNA로 전사되고, 단백질로 번역되는 과정을 시각적으로 확인합니다.")
+st.title("🧬 유전부호 해독 및 시각화 프로그램")
+st.markdown("DNA 서열이 mRNA로 전사(Transcription)되고, 단백질로 번역(Translation)되는 과정을 시각적으로 확인한다.")
+st.markdown("---")
 
-# 아미노산 약어표 (토글 형태로 숨겨서 깔끔하게 배치)
-with st.expander("👉 **아미노산 약어 & 전체 이름 표 보기 (클릭)**"):
+# [추가된 기능 1] 생명과학 이론 설명 토글 (VectorBuilder 이미지 활용)
+st.header("📚 생명현상 해석 가이드")
+
+with st.expander("📖 1. 단백질 생성 과정 (Central Dogma)"):
+    st.markdown("DNA의 유전 정보는 중간 산물인 mRNA로 전사된 후, 리보솜에서 단백질로 번역된다.")
+    try:
+        st.image("fig1_central_dogma.png", caption="Figure 1. DNA is transcribed and translated into functional proteins.")
+    except:
+        st.warning("안내: 'fig1_central_dogma.png' 파일을 코드와 같은 폴더에 넣으면 이미지가 표시됩니다.")
+
+with st.expander("📖 2. 코돈표 (Codon Table)"):
+    st.markdown("mRNA의 3개 염기(코돈)는 하나의 아미노산을 지정한다. 총 64개의 코돈이 20종류의 아미노산과 개시/종결을 지시한다.")
+    try:
+        st.image("fig2_codon_table.png", caption="Figure 2. Each three-letter nucleotide sequence corresponds to an amino acid.")
+    except:
+        st.warning("안내: 'fig2_codon_table.png' 파일을 코드와 같은 폴더에 넣으면 이미지가 표시됩니다.")
+
+with st.expander("📖 3. 단백질의 구조 (Protein Structure)"):
+    st.markdown("번역된 아미노산 사슬(1차 구조)은 꺾이고 접히며 입체 구조를 형성하고(2차, 3차), 여러 소단위체가 모여 복합체(4차 구조)를 이룬다.")
+    try:
+        st.image("fig3_protein_structure.png", caption="Figure 3. Structural organization of proteins.")
+    except:
+        st.warning("안내: 'fig3_protein_structure.png' 파일을 코드와 같은 폴더에 넣으면 이미지가 표시됩니다.")
+
+with st.expander("📖 4. 틀 이동 돌연변이 (Frameshift Mutation)"):
+    st.markdown("염기가 하나 삽입되거나 결실되면 코돈을 읽는 틀(Reading frame)이 밀려, 그 이후의 모든 아미노산 서열이 변하게 된다.")
+    try:
+        st.image("fig4_frameshift.png", caption="Figure 4. Consequences of a frameshift mutation.")
+    except:
+        st.warning("안내: 'fig4_frameshift.png' 파일을 코드와 같은 폴더에 넣으면 이미지가 표시됩니다.")
+
+with st.expander("👉 아미노산 약어 & 전체 이름 표 보기"):
     col1, col2 = st.columns(2)
     items = list(AMINO_ACID_NAMES.items())
     half = len(items) // 2
@@ -53,34 +83,32 @@ with st.expander("👉 **아미노산 약어 & 전체 이름 표 보기 (클릭)
 
 st.markdown("---")
 
-# 사용자로부터 DNA 서열 입력받기
-dna_sequence = st.text_input("DNA 염기서열을 입력하세요 (A, T, G, C만 입력 가능)", "ATGCGTACGTTAGCTAGCTAA").upper()
-dna_sequence = dna_sequence.replace(" ", "")
+# 사용자로부터 DNA 서열 입력받기 (긴 서열을 위해 text_area 사용)
+st.subheader("💻 번역기 실행")
+dna_sequence = st.text_area("DNA 염기서열을 입력하세요 (길이가 길어도 무방함, A, T, G, C)", "ATGCGTACGTTAGCTAGCTAAGCTAGCTAGCATGCATCGA").upper()
+dna_sequence = dna_sequence.replace(" ", "").replace("\n", "")
 
 if dna_sequence:
-    # [추가된 기능] 예외 처리: A, T, G, C가 아닌 문자가 있는지 검사
     valid_chars = set("ATGC")
     if not set(dna_sequence).issubset(valid_chars):
         st.error("🚨 오류: DNA 염기서열은 A, T, G, C만 포함해야 합니다. 오타가 없는지 확인해 주세요.")
     else:
-        st.subheader("1. 전사 과정 (Transcription)")
-        
+        st.markdown("#### 1. 전사 과정 (Transcription)")
         mrna_sequence = dna_sequence.replace('T', 'U')
         
-        st.write("**입력된 DNA (주형 가닥):**")
+        st.write("**입력된 DNA:**")
         st.info(dna_sequence)
-        st.write("**전사된 mRNA:** (T가 U로 치환됨)")
+        st.write("**전사된 mRNA:**")
         st.success(mrna_sequence)
         st.markdown("---")
 
-        st.subheader("2. 번역 과정 (Translation) 및 결과 시각화")
-        
+        st.markdown("#### 2. 번역 과정 (Translation)")
         start_index = mrna_sequence.find('AUG')
         
         if start_index == -1:
-            st.warning("경고: 입력된 서열에서 개시 코돈(AUG)을 찾을 수 없습니다. 번역을 시작할 수 없습니다.")
+            st.warning("경고: 입력된 서열에서 개시 코돈(AUG)을 찾을 수 없습니다.")
         else:
-            st.write(f"✓ **개시 코돈(AUG)**이 {start_index + 1}번째 위치에서 발견되었습니다. 해독틀(Reading Frame)을 설정합니다.")
+            st.write(f"✓ **개시 코돈(AUG)**이 발견되어 해독을 시작합니다.")
             
             translated_codons = []
             translated_aas = []
@@ -95,8 +123,7 @@ if dna_sequence:
                 if amino_acid == 'Stop':
                     break
             
-            st.write("▼ **코돈 및 아미노산 매핑 결과**")
-            
+            st.write("▼ **코돈-아미노산 매핑 시각화**")
             html_blocks = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">'
             
             for codon, aa in zip(translated_codons, translated_aas):
@@ -122,26 +149,33 @@ if dna_sequence:
                 """
                 html_blocks += block
                 
-            html_blocks += '</div>'
+            html_blocks += '</div><br>'
             st.markdown(html_blocks, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_allow_html=True)
-            final_protein = "".join([aa for aa in translated_aas if aa != 'Stop' and aa != 'Met(Start)'])
-            final_protein = "M" + final_protein if final_protein else "M"
+            # [추가된 기능 2] 긴 아미노산 서열을 10개 단위로 잘라서(Chunking) 출력
+            raw_aa_list = [aa for aa in translated_aas if aa not in ('Stop', 'Met(Start)')]
+            raw_aa_list.insert(0, 'M') # 개시 코돈 표기
             
-            st.write("**최종 합성된 아미노산 서열 (1문자 약어 표기):**")
-            st.info(final_protein)
+            chunk_size = 10
+            formatted_protein_chunks = []
             
-            # [추가된 기능] 단백질 탐색 안내 및 NCBI 3D 구조 링크
+            for i in range(0, len(raw_aa_list), chunk_size):
+                chunk = "-".join(raw_aa_list[i:i+chunk_size])
+                formatted_protein_chunks.append(chunk)
+                
+            final_display_text = "\n".join(formatted_protein_chunks)
+            
+            st.write("**최종 합성된 단백질 서열 (10개 단위 줄바꿈):**")
+            st.code(final_display_text, language='text')
+            
             st.markdown("---")
-            st.subheader("🔍 이 서열은 어떤 단백질일까요?")
+            st.subheader("🔍 이 서열의 실제 단백질 구조가 궁금하다면?")
             st.markdown("""
-            우리가 방금 번역한 짧은 서열만으로는 실제 존재하는 특정 단백질의 이름을 완벽히 알아내기 어렵습니다. 실제 단백질은 수백 개의 아미노산으로 이루어져 있기 때문입니다.
-            하지만 전 세계의 과학자들은 **'BLAST'**라는 데이터베이스 검색 도구를 이용해 내가 찾은 짧은 서열이 어떤 단백질의 일부인지 알아냅니다.
+            실제 생명체의 단백질은 위와 같은 아미노산이 수백 개 연결되어 고유한 3차원 입체 구조를 형성합니다.
+            전 세계 생물학자들은 NCBI 데이터베이스를 활용해 내가 찾은 서열의 기능을 분석합니다.
             """)
-            
             st.success("""
-            **🧬 합성된 단백질의 실제 3D 구조와 정보를 탐구해보고 싶다면?** 아래 **NCBI (미국 국립생물공학정보센터)** 사이트로 이동하여 3D 구조 뷰어(Structure)나 BLAST를 이용해 보세요!
-            
-            👉 [NCBI 웹사이트 바로가기 (클릭)](https://www.ncbi.nlm.nih.gov/)
+            👉 [NCBI 웹사이트 바로가기](https://www.ncbi.nlm.nih.gov/)
+            - **Structure 메뉴:** 이미 밝혀진 단백질의 3D 입체 구조를 돌려보며 관찰할 수 있습니다.
+            - **BLAST 도구:** 위에서 번역한 서열을 입력하여 어떤 생명체의 단백질과 일치하는지 검색해 보세요!
             """)
