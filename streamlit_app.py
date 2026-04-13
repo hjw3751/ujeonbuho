@@ -41,7 +41,7 @@ st.title("🧬 유전부호 해독 및 시각화 프로그램")
 st.markdown("DNA 서열이 mRNA로 전사(Transcription)되고, 단백질로 번역(Translation)되는 과정을 시각적으로 확인한다.")
 st.markdown("---")
 
-# [추가된 기능 1] 생명과학 이론 설명 토글 (VectorBuilder 이미지 활용)
+# [기능 1] 생명과학 이론 설명 토글
 st.header("📚 생명현상 해석 가이드")
 
 with st.expander("📖 1. 단백질 생성 과정 (Central Dogma)"):
@@ -83,8 +83,15 @@ with st.expander("👉 아미노산 약어 & 전체 이름 표 보기"):
 
 st.markdown("---")
 
-# 사용자로부터 DNA 서열 입력받기 (긴 서열을 위해 text_area 사용)
+# [기능 2] 사용자로부터 DNA 서열 입력받기 & 안내 메시지
 st.subheader("💻 번역기 실행")
+
+st.info("""
+💡 **입력 가이드: 개시 코돈과 종결 코돈**
+* **개시 코돈 (ATG):** 단백질 합성이 시작되는 신호입니다. (mRNA로 전사되면 **AUG**)
+* **종결 코돈 (TAA, TAG, TGA):** 단백질 합성이 끝나는 신호입니다. (mRNA로 전사되면 **UAA, UAG, UGA**) 종결 코돈 이후의 염기서열은 번역되지 않습니다.
+""")
+
 dna_sequence = st.text_area("DNA 염기서열을 입력하세요 (길이가 길어도 무방함, A, T, G, C)", "ATGCGTACGTTAGCTAGCTAAGCTAGCTAGCATGCATCGA").upper()
 dna_sequence = dna_sequence.replace(" ", "").replace("\n", "")
 
@@ -123,7 +130,7 @@ if dna_sequence:
                 if amino_acid == 'Stop':
                     break
             
-            st.write("▼ **코돈-아미노산 매핑 시각화**")
+            # [기능 3] 지저분할 수 있는 코돈 매핑 과정을 토글로 숨김 (UI 개선)
             html_blocks = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">'
             
             for codon, aa in zip(translated_codons, translated_aas):
@@ -150,9 +157,11 @@ if dna_sequence:
                 html_blocks += block
                 
             html_blocks += '</div><br>'
-            st.markdown(html_blocks, unsafe_allow_html=True)
             
-            # [추가된 기능 2] 긴 아미노산 서열을 10개 단위로 잘라서(Chunking) 출력
+            with st.expander("🔍 코돈별 해독 과정 상세 보기 (클릭하면 펼쳐집니다)"):
+                st.markdown(html_blocks, unsafe_allow_html=True)
+            
+            # 긴 아미노산 서열을 10개 단위로 잘라서(Chunking) 출력
             raw_aa_list = [aa for aa in translated_aas if aa not in ('Stop', 'Met(Start)')]
             raw_aa_list.insert(0, 'M') # 개시 코돈 표기
             
